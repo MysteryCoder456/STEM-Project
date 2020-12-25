@@ -1,0 +1,22 @@
+<MainGrid>
+    ip: ip
+
+    GridLayout:
+        cols: 1
+        size: root.width, root.height
+        padding: 50
+        spacing: 30
+
+        GridLayout:
+            cols: 1
+
+            Label:
+                text: "STEM App"
+
+            TextInput:
+                id: ip
+                multiline: False
+
+        Button:
+            text: "Connect"
+            on_press: root.btn()
