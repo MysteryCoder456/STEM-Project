@@ -25,7 +25,7 @@ def check_for_message():
 class MainGrid(Widget):
     ip = ObjectProperty(None)
 
-    def btn(self):
+    def connect_btn(self):
         print(f"Attempting to establish a connection with {self.ip.text}...")
 
         try:
