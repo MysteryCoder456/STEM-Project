@@ -13,13 +13,20 @@
 
             GridLayout:
                 cols: 1
+                spacing: 30
 
                 Label:
                     text: "STEM App"
+                    font_size: 30
+
+                Label:
+                    text: "This app will tell you if you forgot your child in the car.\nEnter the IP address of the helper device and click\nthe connect button to connect to the it."
+                    halign: "center"
 
                 Label:
                     id: status
                     text: "Not Connected"
+                    font_weight: "bold"
                     color: "#FF0000"
 
             TextInput:
@@ -28,4 +35,5 @@
 
         Button:
             text: "Connect"
+            size_hint: 0.5, 0.4
             on_press: root.connect_btn()
