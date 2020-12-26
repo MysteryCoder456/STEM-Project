@@ -1,7 +1,5 @@
-from logging import fatal
 import socket
 import threading
-import kivy
 from kivy.app import App
 from kivy.uix.widget import Widget
 from kivy.properties import ObjectProperty
