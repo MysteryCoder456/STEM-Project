@@ -23,13 +23,14 @@ def check_for_message():
 
 
 class MainGrid(Widget):
-    ip = ObjectProperty(None)
+    status_label = ObjectProperty(None)
+    ip_entry = ObjectProperty(None)
 
     def connect_btn(self):
-        print(f"Attempting to establish a connection with {self.ip.text}...")
+        print(f"Attempting to establish a connection with {self.ip_entry.text}...")
 
         try:
-            s.connect((self.ip.text, PORT))
+            s.connect((self.ip_entry.text, PORT))
         except ConnectionRefusedError:
             print("Server has not started!")
             return
@@ -43,7 +44,12 @@ class MainGrid(Widget):
         msg = s.recv(2048).decode("utf-8")
 
         if msg == "CONNECTED":
-            self.ip.text = ""
+            # Update GUI
+            self.ip_entry.text = ""
+            self.status_label.text = "Connected"
+            self.status_label.color = "#00FF00"
+
+            # Start message recieving thread
             print("Connection established!")
             msg_thread = threading.Thread(target=check_for_message)
             msg_thread.start()

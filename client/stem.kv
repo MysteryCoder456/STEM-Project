@@ -1,5 +1,6 @@
 <MainGrid>
-    ip: ip
+    status_label: status
+    ip_entry: ip
 
     GridLayout:
         cols: 1
@@ -10,8 +11,16 @@
         GridLayout:
             cols: 1
 
-            Label:
-                text: "STEM App"
+            GridLayout:
+                cols: 1
+
+                Label:
+                    text: "STEM App"
+
+                Label:
+                    id: status
+                    text: "Not Connected"
+                    color: "#FF0000"
 
             TextInput:
                 id: ip
