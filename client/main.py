@@ -8,17 +8,17 @@ from kivy.properties import ObjectProperty
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 PORT = 8000
-APPLICATION_STOPPED = False
 
 
 def check_for_message():
     print("Listening for messsages...")
 
     while True:
-        if APPLICATION_STOPPED:
+        try:
+            msg = s.recv(2048).decode("utf-8")
+        except OSError:
             return
 
-        msg = s.recv(2048).decode("utf-8")
         print(msg)
 
 
@@ -63,5 +63,4 @@ class STEMApp(App):
 if __name__ == "__main__":
     # TODO: Program a way to notify server that client has stopped
     STEMApp().run()
-    APPLICATION_STOPPED = True
     s.close()

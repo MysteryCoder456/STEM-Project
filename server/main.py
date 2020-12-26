@@ -15,6 +15,7 @@ def new_client():
     while True:
         clientsocket, clientaddr = s.accept()
         clientsocket.send(b"CONNECTED")
+        print(f"Client from {clientaddr} has established a connection!")
 
 
 def main():
