@@ -8,21 +8,28 @@ s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 PORT = 8000
 
 
-def check_for_message():
-    print("Listening for messsages...")
-
-    while True:
-        try:
-            msg = s.recv(2048).decode("utf-8")
-        except OSError:
-            return
-
-        print(msg)
-
-
 class MainGrid(Widget):
     status_label = ObjectProperty(None)
     ip_entry = ObjectProperty(None)
+
+    def listen_for_messages(self):
+        global s
+        print("Listening for messsages...")
+
+        while True:
+            try:
+                msg = s.recv(2048).decode("utf-8")
+            except OSError:
+                return
+
+            if msg == "QUIT":
+                s.close()
+                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.status_label.text = "Connection closed by helper device"
+                self.status_label.color = "#FF0000"
+                return
+
+            print(msg)
 
     def connect_btn(self):
         print(f"Attempting to establish a connection with {self.ip_entry.text}...")
@@ -49,8 +56,8 @@ class MainGrid(Widget):
 
             # Start message recieving thread
             print("Connection established!")
-            msg_thread = threading.Thread(target=check_for_message)
-            msg_thread.start()
+            listen_thread = threading.Thread(target=self.listen_for_messages)
+            listen_thread.start()
 
 
 class STEMApp(App):
@@ -59,6 +66,10 @@ class STEMApp(App):
 
 
 if __name__ == "__main__":
-    # TODO: Program a way to notify server that client has stopped
     STEMApp().run()
-    s.close()
+
+    try:
+        s.send(b"QUIT")
+        s.close()
+    except OSError:
+        pass
