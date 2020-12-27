@@ -59,6 +59,7 @@ class MainGrid(Widget):
 
             # Update GUI
             self.ip_entry.text = ""
+            self.error_label.text = ""
             self.status_label.text = "Connected"
             self.status_label.color = "#00FF00"
 
