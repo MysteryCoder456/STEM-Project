@@ -49,5 +49,9 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        CLIENT.send(b"QUIT")
-        s.close()
+        print("Exiting...")
+        try:
+            CLIENT.send(b"QUIT")
+            s.close()
+        except AttributeError:
+            pass

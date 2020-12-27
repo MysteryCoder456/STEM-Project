@@ -14,7 +14,6 @@ class MainGrid(Widget):
     ip_entry = ObjectProperty(None)
 
     def listen_for_messages(self):
-        global s
         print("Listening for messsages...")
 
         while True:
@@ -25,7 +24,6 @@ class MainGrid(Widget):
 
             if msg == "QUIT":
                 s.close()
-                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.status_label.text = "Connection closed by helper device"
                 self.status_label.color = "#FF0000"
                 return
@@ -33,9 +31,12 @@ class MainGrid(Widget):
             print(msg)
 
     def connect_btn(self):
+        global s
+
         print(f"Attempting to establish a connection with {self.ip_entry.text}...")
 
         try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.settimeout(5)
             s.connect((self.ip_entry.text, PORT))
         except ConnectionRefusedError:
