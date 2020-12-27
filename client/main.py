@@ -10,6 +10,7 @@ PORT = 8000
 
 class MainGrid(Widget):
     status_label = ObjectProperty(None)
+    error_label = ObjectProperty(None)
     ip_entry = ObjectProperty(None)
 
     def listen_for_messages(self):
@@ -35,20 +36,26 @@ class MainGrid(Widget):
         print(f"Attempting to establish a connection with {self.ip_entry.text}...")
 
         try:
+            s.settimeout(5)
             s.connect((self.ip_entry.text, PORT))
         except ConnectionRefusedError:
             print("Server has not started!")
+            self.error_label.text = "This helper device has not started yet."
             return
         except socket.gaierror:
             print("Invalid IP address!")
+            self.error_label.text = "The IP address you entered is invalid."
             return
         except OSError:
             print("Invalid IP address!")
+            self.error_label.text = "The IP address you entered is invalid."
             return
 
         msg = s.recv(2048).decode("utf-8")
 
         if msg == "CONNECTED":
+            s.settimeout(None)
+
             # Update GUI
             self.ip_entry.text = ""
             self.status_label.text = "Connected"

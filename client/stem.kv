@@ -1,5 +1,6 @@
 <MainGrid>
     status_label: status
+    error_label: error
     ip_entry: ip
 
     GridLayout:
@@ -26,8 +27,11 @@
                 Label:
                     id: status
                     text: "Not Connected"
-                    font_weight: "bold"
                     color: "#FF0000"
+
+                Label:
+                    id: error
+                    text: ""
 
             TextInput:
                 id: ip
