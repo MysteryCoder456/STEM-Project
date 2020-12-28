@@ -39,7 +39,7 @@ def main():
     global CLIENT
 
     # Initialize OpenCV stuff
-    cap = cv2.VideoCapture(1)
+    cap = cv2.VideoCapture(0)
     cascade_classifier = cv2.CascadeClassifier(os.path.join("server", "haar_cascade_face.xml"))
 
     CLIENT = new_client()
@@ -64,7 +64,7 @@ def main():
 
                 cv2.imshow("Camera Output", img)
 
-                if cv2.waitKey(0) % 0xFF == b"q":
+                if cv2.waitKey(1) & 0xFF == ord("q"):
                     cap.release()
                     break
 
