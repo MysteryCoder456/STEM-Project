@@ -49,14 +49,17 @@ class MainGrid(Widget):
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.settimeout(5)
             s.connect((self.ip_entry.text, PORT))
+
         except ConnectionRefusedError:
             print("Server has not started!")
             self.error_label.text = "This helper device has not started yet."
             return
+
         except socket.gaierror:
             print("Invalid IP address!")
             self.error_label.text = "The IP address you entered is invalid."
             return
+
         except OSError:
             print("Invalid IP address!")
             self.error_label.text = "The IP address you entered is invalid."
