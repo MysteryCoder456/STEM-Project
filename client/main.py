@@ -33,9 +33,19 @@ class MainGrid(Widget):
     def connect_btn(self):
         global s
 
+        if len(self.ip_entry.text) < 1:
+            self.ip_entry.text = "127.0.0.1"
+
         print(f"Attempting to establish a connection with {self.ip_entry.text}...")
 
         try:
+            try:
+                s.send(b"QUIT")
+                s.close()
+                print("Closing previous connection...")
+            except OSError:
+                print("No previous connection was found, continuing...")
+
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.settimeout(5)
             s.connect((self.ip_entry.text, PORT))
@@ -52,7 +62,12 @@ class MainGrid(Widget):
             self.error_label.text = "The IP address you entered is invalid."
             return
 
-        msg = s.recv(2048).decode("utf-8")
+        try:
+            msg = s.recv(2048).decode("utf-8")
+        except socket.timeout:
+            print("Server took too long to respond!")
+            self.error_label.text = "The helper device took too long to respond."
+            return
 
         if msg == "CONNECTED":
             s.settimeout(None)
@@ -65,7 +80,7 @@ class MainGrid(Widget):
 
             # Start message recieving thread
             print("Connection established!")
-            listen_thread = threading.Thread(target=self.listen_for_messages)
+            listen_thread = threading.Thread(target=self.listen_for_messages, daemon=True)
             listen_thread.start()
 
 

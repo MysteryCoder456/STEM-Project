@@ -1,2 +1,3 @@
 kivy
 pygame
+opencv-python
