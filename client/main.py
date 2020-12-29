@@ -1,3 +1,7 @@
+"""
+Client application that runs on the parent/guardians mobile device, laptop, or computer.
+"""
+
 import socket
 import threading
 from kivy.app import App

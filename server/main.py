@@ -1,3 +1,8 @@
+"""
+Server script that runs on the helper device. Device must have a either a camera or a mic, or both.
+Run this script from inside the server folder.
+"""
+
 import os
 import socket
 import threading
@@ -48,7 +53,7 @@ def main():
 
     # Initialize OpenCV stuff
     cap = cv2.VideoCapture(0)
-    cascade_classifier = cv2.CascadeClassifier(os.path.join("server", "haar_cascade_face.xml"))
+    cascade_classifier = cv2.CascadeClassifier("haar_cascade_face.xml")
 
     CLIENT = new_client()
 
