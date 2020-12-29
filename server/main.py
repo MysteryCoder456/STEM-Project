@@ -55,12 +55,10 @@ def main():
             # Camera operation
             if cam_available:
                 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-                print("hmm")
-                faces = cascade_classifier.detectMultiScale3(gray, minSize=(50, 50), minNeighbors=4)
-                print("hmm2")
+                faces = cascade_classifier.detectMultiScale(gray, minSize=(50, 50), minNeighbors=4)
 
-                for (x, y, w, h) in faces:
-                    cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0, 0), 3)
+                for (pos_x, pos_y, width, height) in faces:
+                    cv2.rectangle(img, (pos_x, pos_y), (pos_x + width, pos_y + height), (255, 0, 0), 3)
 
                 cv2.imshow("Camera Output", img)
 
