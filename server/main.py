@@ -3,7 +3,7 @@ Server script that runs on the helper device. Device must have a either a camera
 Run this script from inside the server folder.
 """
 
-import os
+import sys
 import socket
 import threading
 import urllib.request
@@ -48,6 +48,19 @@ def listen_for_messages():
             CLIENT = new_client()
 
 
+def _exit(video_capture):
+    video_capture.release()
+
+    try:
+        print("Exiting...")
+        CLIENT.send(b"QUIT")
+        s.close()
+    except AttributeError:
+        print()
+
+    sys.exit()
+
+
 def main():
     global CLIENT
 
@@ -77,18 +90,11 @@ def main():
                     cv2.imshow("Camera Output", img)
 
                     if cv2.waitKey(1) & 0xFF == ord("q"):
-                        cap.release()
-                        break
+                        _exit(cap)
 
     except KeyboardInterrupt:
-        cap.release()
+        _exit(cap)
 
 
 if __name__ == "__main__":
     main()
-    try:
-        print("Exiting...")
-        CLIENT.send(b"QUIT")
-        s.close()
-    except AttributeError:
-        pass
