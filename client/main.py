@@ -30,9 +30,15 @@ class MainGrid(Widget):
                 s.close()
                 self.status_label.text = "Connection closed by helper device"
                 self.status_label.color = "#FF0000"
+                self.status_label.bold = False
                 return
 
-            print(msg)
+            elif msg == "PERSON DETECTED":
+                self.status_label.text = "A person was detected in your vehicle"
+                self.status_label.color = "#FF0000"
+                self.status_label.bold = True
+
+            print("Server has sent a message:", msg)
 
     def connect_btn(self):
         global s
@@ -84,6 +90,7 @@ class MainGrid(Widget):
             self.error_label.text = ""
             self.status_label.text = "Connected"
             self.status_label.color = "#00FF00"
+            self.status_label.bold = False
 
             # Start message recieving thread
             print("Connection established!")

@@ -30,7 +30,7 @@ def new_client():
     clientsocket, clientaddr = s.accept()
 
     clientsocket.send(b"CONNECTED")
-    print(f"Client from {clientaddr} has established a connection!")
+    print(f"\nClient from {clientaddr} has established a connection!\n")
     CONNECTED = True
 
     return clientsocket
@@ -49,16 +49,12 @@ def listen_for_messages():
 
 
 def _exit(video_capture):
+    print("Exiting...")
     video_capture.release()
 
-    try:
-        print("Exiting...")
+    if CONNECTED:
         CLIENT.send(b"QUIT")
         s.close()
-    except AttributeError:
-        print()
-
-    sys.exit()
 
 
 def main():
@@ -82,18 +78,27 @@ def main():
                 # Camera operation
                 if cam_available:
                     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-                    faces = cascade_classifier.detectMultiScale(gray, minSize=(50, 50), minNeighbors=4)
+                    faces = cascade_classifier.detectMultiScale(gray, scaleFactor=1.3, minSize=(100, 100), minNeighbors=4)
 
                     for (pos_x, pos_y, width, height) in faces:
                         cv2.rectangle(img, (pos_x, pos_y), (pos_x + width, pos_y + height), (255, 0, 0), 3)
+
+                    if len(faces) > 0:
+                        CLIENT.send(b"PERSON DETECTED")
 
                     cv2.imshow("Camera Output", img)
 
                     if cv2.waitKey(1) & 0xFF == ord("q"):
                         _exit(cap)
+                        return
 
     except KeyboardInterrupt:
         _exit(cap)
+        return
+
+    except SystemExit:
+        _exit(cap)
+        return
 
 
 if __name__ == "__main__":
