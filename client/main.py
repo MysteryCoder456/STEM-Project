@@ -98,13 +98,13 @@ class MainGrid(Widget):
             listen_thread.start()
 
 
-class STEMApp(App):
+class CarSafetyApp(App):
     def build(self):
         return MainGrid()
 
 
 if __name__ == "__main__":
-    STEMApp().run()
+    CarSafetyApp().run()
 
     try:
         s.send(b"QUIT")
