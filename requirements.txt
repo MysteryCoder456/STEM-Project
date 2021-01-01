@@ -2,3 +2,4 @@ kivy
 pygame
 opencv-python
 pyaudio
+gtts
