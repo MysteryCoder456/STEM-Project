@@ -9,6 +9,9 @@ import threading
 import urllib.request
 import cv2
 
+CAMERA_PREVIEW = ("--camera-preview" in sys.argv)
+SOUND_PREVIEW = ("--sound-preview" in sys.argv)
+
 ADDR = '127.0.0.1'
 PORT = 8000
 CONNECTED = False
@@ -80,13 +83,15 @@ def main():
                     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
                     faces = cascade_classifier.detectMultiScale(gray, scaleFactor=1.3, minSize=(100, 100), minNeighbors=4)
 
-                    for (pos_x, pos_y, width, height) in faces:
-                        cv2.rectangle(img, (pos_x, pos_y), (pos_x + width, pos_y + height), (255, 0, 0), 3)
-
                     if len(faces) > 0:
+                        print(f"{len(faces)} faces were detected!")
                         CLIENT.send(b"PERSON DETECTED")
 
-                    cv2.imshow("Camera Output", img)
+                    if CAMERA_PREVIEW:
+                        for (pos_x, pos_y, width, height) in faces:
+                            cv2.rectangle(img, (pos_x, pos_y), (pos_x + width, pos_y + height), (255, 0, 0), 3)
+
+                        cv2.imshow("Camera Output", img)
 
                     if cv2.waitKey(1) & 0xFF == ord("q"):
                         _exit(cap)
