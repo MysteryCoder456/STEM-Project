@@ -1,5 +1,10 @@
 # Car Safety App
-An app made to solve children getting stuck in cars. This project was made for a STEM Challenge. You must have Python 3 and the modules listed in `requirements.txt` installed.
+An app made to solve children getting stuck in cars. This project was made for a STEM Challenge.
+
+## Prerequisites
+You must have Python 3 and the modules listed in `requirements.txt` installed. If you get errors while installing `pyaudio` then:<br>
+**Windows:** Do `pip install pipwin` then `pipwin install pyaudio` in Command Prompt<br>
+**MacOS:** Install Homebrew, then do `brew install portaudio` in Terminal. After that install pyaudio normally.
 
 ## How to run the app
 1. Download this project.
