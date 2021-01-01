@@ -6,12 +6,21 @@ Run this script from inside the server folder.
 import sys
 import socket
 import threading
+import struct
 import urllib.request
 import cv2
+import pyaudio
 
 CAMERA_PREVIEW = ("--camera-preview" in sys.argv)
 SOUND_PREVIEW = ("--sound-preview" in sys.argv)
 
+# Audio Stuff
+CHUNK = 1024 * 4
+FORMAT = pyaudio.paInt16
+CHANNELS = 1
+RATE = 44100
+
+# Networking stuff
 ADDR = '127.0.0.1'
 PORT = 8000
 CONNECTED = False
@@ -67,6 +76,17 @@ def main():
     cap = cv2.VideoCapture(0)
     cascade_classifier = cv2.CascadeClassifier("haar_cascade_face.xml")
 
+    # Initialize audio stuff
+    p = pyaudio.PyAudio()
+    stream = p.open(
+        rate=RATE,
+        channels=CHANNELS,
+        format=FORMAT,
+        input=True,
+        output=True,
+        frames_per_buffer=CHUNK
+    )
+
     CLIENT = new_client()
 
     try:
@@ -75,10 +95,10 @@ def main():
 
         # Broadcasting messages
         while True:
+            # Camera operation
             if CONNECTED:
                 cam_available, img = cap.read()
 
-                # Camera operation
                 if cam_available:
                     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
                     faces = cascade_classifier.detectMultiScale(gray, scaleFactor=1.3, minSize=(100, 100), minNeighbors=4)
@@ -97,6 +117,10 @@ def main():
                         _exit(cap)
                         return
 
+            # Sound operation
+            sound_data = struct.unpack(f"{2 * CHUNK}B", stream.read(CHUNK))
+            print(max(sound_data))
+
     except KeyboardInterrupt:
         _exit(cap)
         return
@@ -104,6 +128,9 @@ def main():
     except SystemExit:
         _exit(cap)
         return
+
+    finally:
+        _exit(cap)
 
 
 if __name__ == "__main__":
