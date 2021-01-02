@@ -14,6 +14,8 @@ import pyaudio
 CAMERA_PREVIEW = ("--camera-preview" in sys.argv)
 SOUND_PREVIEW = ("--sound-preview" in sys.argv)
 
+SOUND_THRESHOLD = 160
+
 # Audio Stuff
 CHUNK = 1024 * 4
 FORMAT = pyaudio.paInt16
@@ -120,7 +122,9 @@ def main():
             # Sound operation
             sound_data = struct.unpack(f"{2 * CHUNK}B", stream.read(CHUNK))
             volume = np.linalg.norm(sound_data)
-            print(volume)
+
+            if volume > SOUND_THRESHOLD:
+                CLIENT.send(b"PERSON DETECTED")
 
     except KeyboardInterrupt:
         _exit(cap)
