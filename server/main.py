@@ -4,6 +4,7 @@ Run this script from inside the server folder.
 """
 
 import sys
+import time
 import socket
 import threading
 import struct
@@ -32,6 +33,7 @@ s.bind((ADDR, PORT))
 s.listen(2)
 
 CLIENT = None
+sending_message = False
 
 
 def new_client():
@@ -60,6 +62,15 @@ def listen_for_messages():
             CONNECTED = False
             print("Connection closed by client!")
             CLIENT = new_client()
+
+
+def person_detected():
+    global sending_message
+
+    sending_message = True
+    CLIENT.send(b"PERSON DETECTED")
+    time.sleep(20)
+    sending_message = False
 
 
 def _exit(video_capture):
@@ -97,8 +108,10 @@ def main():
 
         # Broadcasting messages
         while True:
-            # Camera operation
             if CONNECTED:
+                # Camera operation
+                people_detected = False
+
                 cam_available, img = cap.read()
 
                 if cam_available:
@@ -107,7 +120,7 @@ def main():
 
                     if len(faces) > 0:
                         print(f"{len(faces)} faces were detected!")
-                        CLIENT.send(b"PERSON DETECTED")
+                        people_detected = True
 
                     if CAMERA_PREVIEW:
                         for (pos_x, pos_y, width, height) in faces:
@@ -119,12 +132,16 @@ def main():
                         _exit(cap)
                         return
 
-            # Sound operation
-            sound_data = struct.unpack(f"{2 * CHUNK}B", stream.read(CHUNK))
-            volume = np.linalg.norm(sound_data)
+                # Sound operation
+                sound_data = struct.unpack(f"{2 * CHUNK}B", stream.read(CHUNK))
+                volume = np.linalg.norm(sound_data)
 
-            if volume > SOUND_THRESHOLD:
-                CLIENT.send(b"PERSON DETECTED")
+                if volume > SOUND_THRESHOLD:
+                    people_detected = True
+
+                if people_detected and not sending_message:
+                    pd_thread = threading.Thread(target=person_detected, daemon=True)
+                    pd_thread.start()
 
     except KeyboardInterrupt:
         _exit(cap)

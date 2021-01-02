@@ -36,6 +36,7 @@ class MainGrid(Widget):
 
             if msg == "QUIT":
                 s.close()
+                print("Connection closed by server!")
                 self.status_label.text = "Connection closed by helper device"
                 self.status_label.color = "#FF0000"
                 self.status_label.bold = False
@@ -46,8 +47,8 @@ class MainGrid(Widget):
                 self.status_label.color = "#FF0000"
                 self.status_label.bold = True
 
-                st = threading.Thread(target=speak, args=("Warning! A person was detected in your vehicle. I repeat, a person was detected in your vehicle.", ))
-                st.start()
+                speak_thread = threading.Thread(target=speak, args=("Warning! A person was detected in your vehicle. I repeat, a person was detected in your vehicle.", ), daemon=True)
+                speak_thread.start()
 
             print("Server has sent a message:", msg)
 
@@ -115,8 +116,8 @@ class CarSafetyApp(App):
 
 
 if __name__ == "__main__":
-    speak_thread = threading.Thread(target=speak, args=("Please turn up your volume, you will recieve alerts like this...", ))
-    speak_thread.start()
+    sp_thread = threading.Thread(target=speak, args=("Please turn up your volume, you will recieve alerts like this...", ), daemon=True)
+    sp_thread.start()
 
     CarSafetyApp().run()
 
