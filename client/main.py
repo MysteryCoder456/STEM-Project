@@ -7,9 +7,17 @@ import threading
 from kivy.app import App
 from kivy.uix.widget import Widget
 from kivy.properties import ObjectProperty
+import playsound
+import gtts
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 PORT = 8000
+
+
+def speak(text):
+    tts = gtts.gTTS(text)
+    tts.save("tts.mp3")
+    playsound.playsound("tts.mp3")
 
 
 class MainGrid(Widget):
@@ -37,6 +45,7 @@ class MainGrid(Widget):
                 self.status_label.text = "A person was detected in your vehicle"
                 self.status_label.color = "#FF0000"
                 self.status_label.bold = True
+                speak("Warning! A person was detected in your vehicle. I repeat, a person was detected in your vehicle.")
 
             print("Server has sent a message:", msg)
 
@@ -104,6 +113,7 @@ class CarSafetyApp(App):
 
 
 if __name__ == "__main__":
+    speak("Please turn up your volume, you will recieve alerts like this...")
     CarSafetyApp().run()
 
     try:

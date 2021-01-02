@@ -3,4 +3,5 @@ pygame
 opencv-python
 pyaudio
 gtts
+playsound
 numpy

@@ -119,7 +119,8 @@ def main():
 
             # Sound operation
             sound_data = struct.unpack(f"{2 * CHUNK}B", stream.read(CHUNK))
-            print(max(sound_data))
+            volume = np.linalg.norm(sound_data)
+            print(volume)
 
     except KeyboardInterrupt:
         _exit(cap)
