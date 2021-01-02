@@ -45,7 +45,9 @@ class MainGrid(Widget):
                 self.status_label.text = "A person was detected in your vehicle"
                 self.status_label.color = "#FF0000"
                 self.status_label.bold = True
-                speak("Warning! A person was detected in your vehicle. I repeat, a person was detected in your vehicle.")
+
+                st = threading.Thread(target=speak, args=("Warning! A person was detected in your vehicle. I repeat, a person was detected in your vehicle.", ))
+                st.start()
 
             print("Server has sent a message:", msg)
 
@@ -113,7 +115,9 @@ class CarSafetyApp(App):
 
 
 if __name__ == "__main__":
-    speak("Please turn up your volume, you will recieve alerts like this...")
+    speak_thread = threading.Thread(target=speak, args=("Please turn up your volume, you will recieve alerts like this...", ))
+    speak_thread.start()
+
     CarSafetyApp().run()
 
     try:
