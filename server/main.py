@@ -11,6 +11,7 @@ import struct
 import urllib.request
 import cv2
 import pyaudio
+import numpy as np
 
 CAMERA_PREVIEW = ("--camera-preview" in sys.argv)
 SOUND_PREVIEW = ("--sound-preview" in sys.argv)
@@ -135,6 +136,7 @@ def main():
                 # Sound operation
                 sound_data = struct.unpack(f"{2 * CHUNK}B", stream.read(CHUNK))
                 volume = np.linalg.norm(sound_data)
+                print(volume)
 
                 if volume > SOUND_THRESHOLD:
                     people_detected = True
