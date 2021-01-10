@@ -15,6 +15,7 @@ import pyaudio
 import numpy as np
 import face_recognition
 
+# Options
 CAMERA_PREVIEW = ("--camera-preview" in sys.argv)
 SOUND_PREVIEW = ("--sound-preview" in sys.argv)
 DISABLE_MIC = ("--disable-mic" in sys.argv)
