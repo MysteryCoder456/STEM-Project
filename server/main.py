@@ -139,7 +139,10 @@ def main():
                     face_encodings = face_recognition.face_encodings(img, face_locations)
                     for f_enc, f_loc in zip(face_encodings, face_locations):
                         results = face_recognition.compare_faces(known_guard_faces, f_enc, tolerance=0.7)
-                        guardian_detected = (True in results)
+
+                        if not guardian_detected:
+                            guardian_detected = (True in results)
+
                         people_detected = True
 
                         if CAMERA_PREVIEW:
