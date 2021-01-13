@@ -29,7 +29,7 @@ CHANNELS = 1
 RATE = 44100
 
 # Networking stuff
-ADDR = '127.0.0.1'
+ADDR = '0.0.0.0'
 PORT = 8000
 CONNECTED = False
 
