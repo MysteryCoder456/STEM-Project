@@ -95,6 +95,8 @@ class MainGrid(Widget):
             return
 
         if msg == "CONNECTED":
+            hostname = socket.gethostname().encode("UTF-8")
+            s.send(hostname)
             s.settimeout(None)
 
             # Update GUI

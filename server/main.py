@@ -38,6 +38,7 @@ s.bind((ADDR, PORT))
 s.listen(2)
 
 CLIENT = None
+CLIENT_DEVICE_NAME = None
 sending_message = False
 
 # Facial Recognition stuff
@@ -46,7 +47,7 @@ known_guard_names = []
 
 
 def new_client():
-    global CONNECTED
+    global CONNECTED, CLIENT_DEVICE_NAME
 
     print("Listening for connections at:")
     print("IP:", urllib.request.urlopen('https://ident.me').read().decode('utf8'), "Port:", PORT)
@@ -55,7 +56,8 @@ def new_client():
     clientsocket, clientaddr = s.accept()
 
     clientsocket.send(b"CONNECTED")
-    print(f"\nClient from {clientaddr} has established a connection!\n")
+    CLIENT_DEVICE_NAME = clientsocket.recv(2048).decode("UTF-8")
+    print(f"\nClient from {clientaddr} has established a connection!\nClient device name: {CLIENT_DEVICE_NAME}\n")
     CONNECTED = True
 
     return clientsocket
