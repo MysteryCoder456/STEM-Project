@@ -47,6 +47,7 @@ known_guard_faces = []
 known_guard_names = []
 
 client = Client()
+CALLER_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
 
 
 def new_client():
@@ -88,11 +89,9 @@ def person_detected():
 
 
 def call_police():
-    caller = "+19512347956"  # please change your twilio phone number here
     number = "+971563637524"
-    print("Dialing " + number)
-    client.calls.create(to=number, from_=caller, url="http://static.fullstackpython.com/phone-calls-python.xml", method="GET")
-
+    print("Dialing " + numbeclient.calls.create(to=number, from_=caller, url="http://static.fullstackpython.com/phone-calls-python.xml", method="GET")
+    client.calls.create(to=number, from_=CALLER_NUMBER, url="http://static.fullstackpython.com/phone-calls-python.xml", method="GET")
 
 def _exit(video_capture):
     print("Exiting...")
