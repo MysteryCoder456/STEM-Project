@@ -14,3 +14,6 @@ You must have Python 3 and the modules listed in `requirements.txt` installed. I
 
 ## How to run the server
 Steps are same as running the app except you do `cd STEM-Project/server` instead in step 3.
+However there are also different options you can use to enable or disable different functionalities:
+1. `--camera-preview` will show you a preview of what the camera sees.
+2. `--disable-mic` will disable the microphone functionality.
