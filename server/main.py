@@ -89,9 +89,13 @@ def person_detected():
 
 
 def call_police():
-    number = "+971563637524"
-    print("Dialing " + number)
-    client.calls.create(to=number, from_=CALLER_NUMBER, url="http://static.fullstackpython.com/phone-calls-python.xml", method="GET")
+    with open("emergency_numbers.txt", "r") as emergency_file:
+        numbers = emergency_file.readlines()
+
+        for number in numbers:
+            if not number.startswith("#"):
+                print("Dialing " + number)
+                client.calls.create(to=number, from_=CALLER_NUMBER, url="http://static.fullstackpython.com/phone-calls-python.xml", method="GET")
 
 def _exit(video_capture):
     print("Exiting...")
