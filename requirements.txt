@@ -6,3 +6,4 @@ gtts
 playsound
 numpy
 face_recognition
+twilio

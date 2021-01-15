@@ -14,6 +14,7 @@ import cv2
 import pyaudio
 import numpy as np
 import face_recognition
+from twilio.rest import Client
 
 # Options
 CAMERA_PREVIEW = ("--camera-preview" in sys.argv)
@@ -44,6 +45,8 @@ sending_message = False
 # Facial Recognition stuff
 known_guard_faces = []
 known_guard_names = []
+
+client = Client()
 
 
 def new_client():
@@ -82,6 +85,13 @@ def person_detected():
     CLIENT.send(b"PERSON DETECTED")
     time.sleep(20)
     sending_message = False
+
+
+def call_police():
+    caller = "+19512347956"  # please change your twilio phone number here
+    number = "+971563637524"
+    print("Dialing " + number)
+    client.calls.create(to=number, from_=caller, url="http://static.fullstackpython.com/phone-calls-python.xml", method="GET")
 
 
 def _exit(video_capture):
@@ -189,4 +199,5 @@ def main():
 
 
 if __name__ == "__main__":
+    call_police()
     main()
