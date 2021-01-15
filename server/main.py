@@ -182,6 +182,7 @@ def main():
                         people_detected = True
 
                 if people_detected and not guardian_detected and not sending_message:
+                    call_police()
                     pd_thread = threading.Thread(target=person_detected, daemon=True)
                     pd_thread.start()
 
@@ -198,5 +199,4 @@ def main():
 
 
 if __name__ == "__main__":
-    call_police()
     main()
