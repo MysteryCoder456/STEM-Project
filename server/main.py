@@ -90,7 +90,7 @@ def person_detected():
 
 def call_police():
     number = "+971563637524"
-    print("Dialing " + numbeclient.calls.create(to=number, from_=caller, url="http://static.fullstackpython.com/phone-calls-python.xml", method="GET")
+    print("Dialing " + number)
     client.calls.create(to=number, from_=CALLER_NUMBER, url="http://static.fullstackpython.com/phone-calls-python.xml", method="GET")
 
 def _exit(video_capture):
