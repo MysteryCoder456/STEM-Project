@@ -179,14 +179,13 @@ class FootageScreen(Screen):
             cv2.imwrite("footage.jpg", image)
             self.image_widget.reload()
 
-        self.manager.direction = "left"
-        self.manager.current = "main"
-
     def go_back(self):
         print("Going back to MainScreen")
         s.send(b"STOP FOOTAGE STREAM")
         self.listen = False
         self.listen_thread.join()
+        self.manager.direction = "left"
+        self.manager.current = "main"
 
 
 class CarSafetyApp(App):
