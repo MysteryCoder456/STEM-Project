@@ -8,6 +8,7 @@ import sys
 import time
 import socket
 import threading
+import pickle
 import struct
 import urllib.request
 import cv2
@@ -46,8 +47,10 @@ sending_message = False
 known_guard_faces = []
 known_guard_names = []
 
-client = Client()
 CALLER_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
+client = Client()
+stream_image_data = False
+encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]
 
 
 def new_client():
@@ -68,7 +71,7 @@ def new_client():
 
 
 def listen_for_messages():
-    global CLIENT, CONNECTED
+    global CLIENT, CONNECTED, stream_image_data
 
     while True:
         msg = CLIENT.recv(2048).decode("utf-8")
@@ -77,6 +80,12 @@ def listen_for_messages():
             CONNECTED = False
             print("Connection closed by client!")
             CLIENT = new_client()
+
+        elif msg == "START FOOTAGE STREAM":
+            stream_image_data = True
+
+        elif msg == "STOP FOOTAGE STREAM":
+            stream_image_data = False
 
 
 def person_detected():
@@ -148,6 +157,12 @@ def main():
                 guardian_detected = False
 
                 cam_available, img = cap.read()
+
+                if stream_image_data:
+                    _, frame = cv2.imencode('.jpg', img, encode_param)
+                    data = pickle.dumps(frame, 0)
+                    print(len(data))
+                    CLIENT.send(data)
 
                 if cam_available:
                     face_locations = face_recognition.face_locations(img)

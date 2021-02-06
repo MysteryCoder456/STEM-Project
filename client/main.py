@@ -27,13 +27,14 @@ class MainScreen(Screen):
     status_label = ObjectProperty(None)
     error_label = ObjectProperty(None)
     ip_entry = ObjectProperty(None)
+    listen_thread = None
     listen = False
 
     def on_pre_enter(self, *args):
         if connected:
             print("Restarting message thread...")
-            listen_thread = threading.Thread(target=self.listen_for_messages, daemon=True)
-            listen_thread.start()
+            self.listen_thread = threading.Thread(target=self.listen_for_messages, daemon=True)
+            self.listen_thread.start()
 
     def listen_for_messages(self):
         global connected
@@ -44,6 +45,10 @@ class MainScreen(Screen):
                 msg = s.recv(2048).decode("utf-8")
             except OSError:
                 break
+            except UnicodeDecodeError:
+                pass
+            finally:
+                msg = ""
 
             if msg == "QUIT":
                 s.close()
@@ -67,7 +72,9 @@ class MainScreen(Screen):
 
     def camera_feed(self):
         if connected:
+            s.send(b"START FOOTAGE STREAM")
             self.listen = False
+            self.listen_thread.join()
             self.manager.direction = "left"
             self.manager.current = "footage"
         else:
@@ -130,19 +137,20 @@ class MainScreen(Screen):
 
             # Start message recieving thread
             print("Connection established!")
-            listen_thread = threading.Thread(target=self.listen_for_messages, daemon=True)
-            listen_thread.start()
+            self.listen_thread = threading.Thread(target=self.listen_for_messages, daemon=True)
+            self.listen_thread.start()
 
 
 class FootageScreen(Screen):
     image_widget = ObjectProperty(None)
+    listen_thread = None
     listen = False
 
     def on_pre_enter(self, *args):
         print("Starting image streaming thread...")
         self.listen = True
-        listen_thread = threading.Thread(target=self.listen_for_messages, daemon=True)
-        listen_thread.start()
+        self.listen_thread = threading.Thread(target=self.listen_for_messages, daemon=True)
+        self.listen_thread.start()
 
     def listen_for_messages(self):
         global connected
@@ -150,19 +158,25 @@ class FootageScreen(Screen):
 
         while self.listen:
             try:
-                msg = s.recv(4096).decode("utf-8")
+                msg = s.recv(32768)
+                msg_decoded = msg.decode("utf-8")
             except OSError:
                 break
+            except UnicodeDecodeError:
+                pass
+            finally:
+                msg_decoded = ""
 
-            if msg == "QUIT":
+            if msg_decoded == "QUIT":
                 s.close()
                 print("Connection closed by server!")
                 connected = False
                 self.listen = False
                 return
 
-            image = pickle.loads(msg)
-            cv2.imwrite("footage.png", image)
+            print(len(msg))
+            image = pickle.loads(msg, encoding="bytes")
+            cv2.imwrite("footage.jpg", image)
             self.image_widget.reload()
 
         self.manager.direction = "left"
@@ -170,7 +184,9 @@ class FootageScreen(Screen):
 
     def go_back(self):
         print("Going back to MainScreen")
+        s.send(b"STOP FOOTAGE STREAM")
         self.listen = False
+        self.listen_thread.join()
 
 
 class CarSafetyApp(App):
