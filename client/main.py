@@ -4,12 +4,15 @@ Client application that runs on the parent/guardians mobile device, laptop, or c
 
 import socket
 import threading
+import pickle
 from kivy.app import App
 from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy.properties import ObjectProperty
 import playsound
 import gtts
+import cv2
 
+connected = False
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 PORT = 8000
 
@@ -20,23 +23,27 @@ def speak(text):
     playsound.playsound("tts.mp3")
 
 
-class FootageScreen(Screen):
-    pass
-
-
 class MainScreen(Screen):
     status_label = ObjectProperty(None)
     error_label = ObjectProperty(None)
     ip_entry = ObjectProperty(None)
+    listen = False
+
+    def on_pre_enter(self, *args):
+        if connected:
+            print("Restarting message thread...")
+            listen_thread = threading.Thread(target=self.listen_for_messages, daemon=True)
+            listen_thread.start()
 
     def listen_for_messages(self):
+        global connected
         print("Listening for messsages...")
 
-        while True:
+        while self.listen:
             try:
                 msg = s.recv(2048).decode("utf-8")
             except OSError:
-                return
+                break
 
             if msg == "QUIT":
                 s.close()
@@ -44,7 +51,9 @@ class MainScreen(Screen):
                 self.status_label.text = "Connection closed by helper device"
                 self.status_label.color = "#FF0000"
                 self.status_label.bold = False
-                return
+                connected = False
+                self.listen = False
+                break
 
             elif msg == "PERSON DETECTED":
                 self.status_label.text = "A person was detected in your vehicle"
@@ -56,8 +65,16 @@ class MainScreen(Screen):
 
             print("Server has sent a message:", msg)
 
+    def camera_feed(self):
+        if connected:
+            self.listen = False
+            self.manager.direction = "left"
+            self.manager.current = "footage"
+        else:
+            self.error_label.text = "Please connect to a helper device first."
+
     def connect_btn(self):
-        global s
+        global s, connected
 
         if len(self.ip_entry.text) < 1:
             self.ip_entry.text = "127.0.0.1"
@@ -99,6 +116,8 @@ class MainScreen(Screen):
             return
 
         if msg == "CONNECTED":
+            connected = True
+            self.listen = True
             hostname = socket.gethostname().encode("UTF-8")
             s.send(hostname)
             s.settimeout(None)
@@ -113,6 +132,45 @@ class MainScreen(Screen):
             print("Connection established!")
             listen_thread = threading.Thread(target=self.listen_for_messages, daemon=True)
             listen_thread.start()
+
+
+class FootageScreen(Screen):
+    image_widget = ObjectProperty(None)
+    listen = False
+
+    def on_pre_enter(self, *args):
+        print("Starting image streaming thread...")
+        self.listen = True
+        listen_thread = threading.Thread(target=self.listen_for_messages, daemon=True)
+        listen_thread.start()
+
+    def listen_for_messages(self):
+        global connected
+        print("Listening for messsages...")
+
+        while self.listen:
+            try:
+                msg = s.recv(4096).decode("utf-8")
+            except OSError:
+                break
+
+            if msg == "QUIT":
+                s.close()
+                print("Connection closed by server!")
+                connected = False
+                self.listen = False
+                return
+
+            image = pickle.loads(msg)
+            cv2.imwrite("footage.png", image)
+            self.image_widget.reload()
+
+        self.manager.direction = "left"
+        self.manager.current = "main"
+
+    def go_back(self):
+        print("Going back to MainScreen")
+        self.listen = False
 
 
 class CarSafetyApp(App):

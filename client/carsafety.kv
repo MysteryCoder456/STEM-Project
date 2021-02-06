@@ -44,5 +44,27 @@
 
         Button:
             text: "Connect"
-            size_hint: 0.5, 0.4
+            size_hint: 0.5, 0.2
             on_press: root.connect_btn()
+
+        Button:
+            text: "Watch Camera Feed"
+            size_hint: 0.5, 0.2
+            on_press: root.camera_feed()
+
+
+<FootageScreen>
+    image_widget: img
+
+    FloatLayout:
+        Button:
+            text: "Go Back"
+            size_hint: 0.1, 0.1
+            pos_hint: {"left": 0.05, "top": 1}
+            on_press: root.go_back()
+
+        Image:
+            id: img
+            source: "footage.png"
+            pos_hint: {"left": 0.1, "bottom": 0.1}
+            size_hint: 0.8, 0.7
