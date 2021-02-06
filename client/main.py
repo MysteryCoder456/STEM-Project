@@ -5,7 +5,7 @@ Client application that runs on the parent/guardians mobile device, laptop, or c
 import socket
 import threading
 from kivy.app import App
-from kivy.uix.widget import Widget
+from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy.properties import ObjectProperty
 import playsound
 import gtts
@@ -20,7 +20,11 @@ def speak(text):
     playsound.playsound("tts.mp3")
 
 
-class MainGrid(Widget):
+class FootageScreen(Screen):
+    pass
+
+
+class MainScreen(Screen):
     status_label = ObjectProperty(None)
     error_label = ObjectProperty(None)
     ip_entry = ObjectProperty(None)
@@ -113,7 +117,11 @@ class MainGrid(Widget):
 
 class CarSafetyApp(App):
     def build(self):
-        return MainGrid()
+        wm = ScreenManager()
+        wm.add_widget(MainScreen(name="main"))
+        wm.add_widget(FootageScreen(name="footage"))
+        wm.current = "main"
+        return wm
 
 
 if __name__ == "__main__":
