@@ -80,7 +80,7 @@ def listen_for_messages():
             CLIENT = new_client()
             continue
 
-        if not msg:
+        if msg == "QUIT":
             CONNECTED = False
             print("Connection closed by client!")
             CLIENT = new_client()

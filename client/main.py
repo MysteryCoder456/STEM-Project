@@ -58,10 +58,8 @@ class MainScreen(Screen):
                 connected = False
                 self.listen = False
                 break
-            finally:
-                msg_decoded = ""
 
-            if not msg:
+            if msg_decoded == "QUIT":
                 s.close()
                 print("Connection closed by server!")
                 self.status_label.text = "Connection closed by helper device"
@@ -221,4 +219,6 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("Keyboard Interrupt...")
     finally:
+        if connected:
+            s.send(b"QUIT")
         s.close()
