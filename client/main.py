@@ -5,6 +5,7 @@ Client application that runs on the parent/guardians mobile device, laptop, or c
 import socket
 import threading
 import pickle
+import struct
 from kivy.app import App
 from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy.properties import ObjectProperty
@@ -42,15 +43,25 @@ class MainScreen(Screen):
 
         while self.listen:
             try:
-                msg = s.recv(2048).decode("utf-8")
+                msg = s.recv(2048)
+                msg_decoded = msg.decode("utf-8")
             except OSError:
                 break
             except UnicodeDecodeError:
                 pass
+            except ConnectionResetError:
+                s.close()
+                print("Connection closed by server!")
+                self.status_label.text = "Connection closed by helper device"
+                self.status_label.color = "#FF0000"
+                self.status_label.bold = False
+                connected = False
+                self.listen = False
+                break
             finally:
-                msg = ""
+                msg_decoded = ""
 
-            if msg == "QUIT":
+            if not msg:
                 s.close()
                 print("Connection closed by server!")
                 self.status_label.text = "Connection closed by helper device"
@@ -60,15 +71,16 @@ class MainScreen(Screen):
                 self.listen = False
                 break
 
-            elif msg == "PERSON DETECTED":
+            elif msg_decoded == "PERSON DETECTED":
                 self.status_label.text = "A person was detected in your vehicle"
                 self.status_label.color = "#FF0000"
                 self.status_label.bold = True
 
-                speak_thread = threading.Thread(target=speak, args=("Warning! A person was detected in your vehicle. I repeat, a person was detected in your vehicle.", ), daemon=True)
+                speak_thread = threading.Thread(target=speak, args=("Warning! A person was detected in your vehicle. I repeat, a person was detected in your vehicle.",),
+                                                daemon=True)
                 speak_thread.start()
 
-            print("Server has sent a message:", msg)
+            print("Server has sent a message:", msg_decoded)
 
     def camera_feed(self):
         if connected:
@@ -156,27 +168,30 @@ class FootageScreen(Screen):
         global connected
         print("Listening for messsages...")
 
+        payload_size = struct.calcsize("Q")
+
         while self.listen:
-            try:
-                msg = s.recv(32768)
-                msg_decoded = msg.decode("utf-8")
-            except OSError:
+            size_msg = s.recv(2048).decode("utf8")
+
+            if not size_msg:
+                self.go_back()
                 break
-            except UnicodeDecodeError:
-                pass
-            finally:
-                msg_decoded = ""
 
-            if msg_decoded == "QUIT":
-                s.close()
-                print("Connection closed by server!")
-                connected = False
-                self.listen = False
-                return
+            if size_msg.startswith("SIZE"):
+                size = int(size_msg.split()[1])
+                print("Received image size!")
+                s.send(b"GOT SIZE")
 
-            print(len(msg))
-            image = pickle.loads(msg, encoding="bytes")
-            cv2.imwrite("footage.jpg", image)
+                img_data = s.recv(4194304)  # 4 Megabytes
+
+                with open("footage.jpg", "wb") as imagefile:
+                    imagefile.write(img_data)
+
+                s.send(b"GOT IMAGE")
+
+            e = cv2.imread("cache.jpg")
+            cv2.imshow(e, "pog")
+
             self.image_widget.reload()
 
     def go_back(self):
@@ -198,13 +213,12 @@ class CarSafetyApp(App):
 
 
 if __name__ == "__main__":
-    sp_thread = threading.Thread(target=speak, args=("Please turn up your volume, you will recieve alerts like this...", ), daemon=True)
+    sp_thread = threading.Thread(target=speak, args=("Please turn up your volume, you will recieve alerts like this...",), daemon=True)
     sp_thread.start()
 
-    CarSafetyApp().run()
-
     try:
-        s.send(b"QUIT")
+        CarSafetyApp().run()
+    except KeyboardInterrupt:
+        print("Keyboard Interrupt...")
+    finally:
         s.close()
-    except OSError:
-        pass

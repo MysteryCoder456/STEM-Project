@@ -8,7 +8,6 @@ import sys
 import time
 import socket
 import threading
-import pickle
 import struct
 import urllib.request
 import cv2
@@ -39,7 +38,7 @@ s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind((ADDR, PORT))
 s.listen(2)
 
-CLIENT = None
+CLIENT: socket.socket = socket.socket()
 CLIENT_DEVICE_NAME = None
 sending_message = False
 
@@ -50,7 +49,6 @@ known_guard_names = []
 CALLER_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
 client = Client()
 stream_image_data = False
-encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]
 
 
 def new_client():
@@ -74,12 +72,19 @@ def listen_for_messages():
     global CLIENT, CONNECTED, stream_image_data
 
     while True:
-        msg = CLIENT.recv(2048).decode("utf-8")
-
-        if msg == "QUIT":
+        try:
+            msg = CLIENT.recv(2048).decode("utf-8")
+        except ConnectionResetError:
             CONNECTED = False
             print("Connection closed by client!")
             CLIENT = new_client()
+            continue
+
+        if not msg:
+            CONNECTED = False
+            print("Connection closed by client!")
+            CLIENT = new_client()
+            continue
 
         elif msg == "START FOOTAGE STREAM":
             stream_image_data = True
@@ -105,6 +110,7 @@ def call_police():
             if not number.startswith("#"):
                 print("Dialing " + number)
                 client.calls.create(to=number, from_=CALLER_NUMBER, url="http://static.fullstackpython.com/phone-calls-python.xml", method="GET")
+
 
 def _exit(video_capture):
     print("Exiting...")
@@ -133,7 +139,7 @@ def main():
             frames_per_buffer=CHUNK
         )
 
-    # Initialize face recog stuff
+    # Initialize face recognition stuff
     for face_name in os.listdir("known_guardians"):
         if face_name != ".DS_Store":
             for filename in os.listdir(f"known_guardians/{face_name}"):
@@ -157,14 +163,28 @@ def main():
                 guardian_detected = False
 
                 cam_available, img = cap.read()
-
-                if stream_image_data:
-                    _, frame = cv2.imencode('.jpg', img, encode_param)
-                    data = pickle.dumps(frame, 0)
-                    print(len(data))
-                    CLIENT.send(data)
+                cv2.imwrite("cache.jpg", img)
 
                 if cam_available:
+                    if stream_image_data:
+                        print("Sending image to client...")
+
+                        with open("cache.jpg", 'rb') as imagefile:
+                            img_bytes = imagefile.read()
+                            size = len(img_bytes)
+
+                            CLIENT.send(f"SIZE {size}".encode("utf8"))
+                            response = CLIENT.recv(2048).decode("utf8")
+
+                            if response == "GOT SIZE":
+                                CLIENT.sendall(img_bytes)
+                                response = CLIENT.recv(2048).decode("utf8")
+
+                                if response == "GOT IMAGE":
+                                    print("Sent image to client!")
+
+                        continue
+
                     face_locations = face_recognition.face_locations(img)
                     face_encodings = face_recognition.face_encodings(img, face_locations)
                     for f_enc, f_loc in zip(face_encodings, face_locations):
