@@ -71,7 +71,10 @@ def new_client():
 def listen_for_messages():
     global CLIENT, CONNECTED, stream_image_data
 
-    while not stream_image_data:
+    while True:
+        if stream_image_data:
+            continue
+
         try:
             msg = CLIENT.recv(2048).decode("utf-8")
         except ConnectionResetError:
@@ -89,6 +92,7 @@ def listen_for_messages():
         elif msg == "START FOOTAGE STREAM":
             stream_image_data = True
             CLIENT.send(b"OK")
+            print("Started sending video data!")
 
 
 def person_detected():
@@ -177,22 +181,31 @@ def main():
 
                             print("Sending image size to client...")
                             CLIENT.send(f"SIZE {size}".encode("utf8"))
-                            response = CLIENT.recv(2048).decode("utf8")
+                            response = CLIENT.recv(2048)
 
-                            if response == "GOT SIZE":
+                            if not response:
+                                continue
+
+                            if response.decode("utf8") == "GOT SIZE":
+                                time.sleep(0.2)
                                 print("Sending image data to client...")
                                 CLIENT.sendall(img_bytes)
-                                response = CLIENT.recv(2048).decode("utf8")
+                                response = CLIENT.recv(2048)
 
-                                if response == "GOT IMAGE":
+                                if not response:
+                                    continue
+
+                                if response.decode("utf8") == "GOT IMAGE":
                                     print("Sent image to client successfully!")
 
-                                elif response == "STOP FOOTAGE STREAM":
+                                elif response.decode("utf8") == "STOP FOOTAGE STREAM":
                                     stream_image_data = False
+                                    print("Stopped sending video data!")
 
-                            elif response == "STOP FOOTAGE STREAM":
+                            elif response.decode("utf8") == "STOP FOOTAGE STREAM":
                                 stream_image_data = False
                                 CLIENT.send(b"OK")
+                                print("Stopped sending video data!")
 
                         continue
 

@@ -3,15 +3,13 @@ Client application that runs on the parent/guardians mobile device, laptop, or c
 """
 
 import socket
+import os
 import threading
-import pickle
-import struct
 from kivy.app import App
 from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy.properties import ObjectProperty
 import playsound
 import gtts
-import cv2
 
 connected = False
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -173,7 +171,10 @@ class FootageScreen(Screen):
                 self.go_back()
                 break
 
-            size_decoded = size_msg.decode("utf8")
+            try:
+                size_decoded = size_msg.decode("utf8")
+            except UnicodeDecodeError:
+                continue
 
             if size_decoded.startswith("SIZE"):
                 size = int(size_msg.split()[1])
@@ -188,9 +189,7 @@ class FootageScreen(Screen):
                 print("Received image data!")
                 s.send(b"GOT IMAGE")
 
-            # e = cv2.imread("footage.jpg")
-            # cv2.imshow("pog", e)
-
+            # self.image_widget.source = "footage.jpg"
             # self.image_widget.reload()
 
     def go_back(self):
@@ -198,7 +197,7 @@ class FootageScreen(Screen):
         self.listen = False
         s.send(b"STOP FOOTAGE STREAM")
         self.listen_thread.join()
-        self.manager.direction = "left"
+        self.manager.direction = "right"
         self.manager.current = "main"
 
 
@@ -223,3 +222,5 @@ if __name__ == "__main__":
         if connected:
             s.send(b"QUIT")
         s.close()
+        if os.path.exists("footage.jpg"):
+            os.remove("footage.jpg")

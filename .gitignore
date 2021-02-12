@@ -130,6 +130,6 @@ dmypy.json
 
 # Program Files
 tts.mp3
-footage.jpg
+client/footage.jpg
 cache.jpg
 server/known_guardians/
