@@ -132,4 +132,4 @@ dmypy.json
 tts.mp3
 footage.png
 cache.jpg
-known_guardians/**
+server/known_guardians/
