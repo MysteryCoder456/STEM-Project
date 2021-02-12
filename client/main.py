@@ -33,7 +33,7 @@ class MainScreen(Screen):
 
     def on_pre_enter(self, *args):
         if connected:
-            print("Restarting message thread...")
+            print("Restarting main message thread...")
             self.listen_thread = threading.Thread(target=self.listen_for_messages, daemon=True)
             self.listen_thread.start()
 
@@ -82,8 +82,8 @@ class MainScreen(Screen):
 
     def camera_feed(self):
         if connected:
-            s.send(b"START FOOTAGE STREAM")
             self.listen = False
+            s.send(b"START FOOTAGE STREAM")
             self.listen_thread.join()
             self.manager.direction = "left"
             self.manager.current = "footage"
@@ -164,38 +164,39 @@ class FootageScreen(Screen):
 
     def listen_for_messages(self):
         global connected
-        print("Listening for messsages...")
-
-        payload_size = struct.calcsize("Q")
+        print("Listening for messages...")
 
         while self.listen:
-            size_msg = s.recv(2048).decode("utf8")
+            size_msg = s.recv(2048)
 
             if not size_msg:
                 self.go_back()
                 break
 
-            if size_msg.startswith("SIZE"):
+            size_decoded = size_msg.decode("utf8")
+
+            if size_decoded.startswith("SIZE"):
                 size = int(size_msg.split()[1])
-                print("Received image size!")
+                print(f"Received image size: {size}!")
                 s.send(b"GOT SIZE")
 
-                img_data = s.recv(4194304)  # 4 Megabytes
+                img_data = s.recv(size)
 
                 with open("footage.jpg", "wb") as imagefile:
                     imagefile.write(img_data)
 
+                print("Received image data!")
                 s.send(b"GOT IMAGE")
 
-            e = cv2.imread("cache.jpg")
-            cv2.imshow(e, "pog")
+            # e = cv2.imread("footage.jpg")
+            # cv2.imshow("pog", e)
 
-            self.image_widget.reload()
+            # self.image_widget.reload()
 
     def go_back(self):
         print("Going back to MainScreen")
-        s.send(b"STOP FOOTAGE STREAM")
         self.listen = False
+        s.send(b"STOP FOOTAGE STREAM")
         self.listen_thread.join()
         self.manager.direction = "left"
         self.manager.current = "main"

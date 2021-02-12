@@ -71,7 +71,7 @@ def new_client():
 def listen_for_messages():
     global CLIENT, CONNECTED, stream_image_data
 
-    while True:
+    while not stream_image_data:
         try:
             msg = CLIENT.recv(2048).decode("utf-8")
         except ConnectionResetError:
@@ -88,9 +88,7 @@ def listen_for_messages():
 
         elif msg == "START FOOTAGE STREAM":
             stream_image_data = True
-
-        elif msg == "STOP FOOTAGE STREAM":
-            stream_image_data = False
+            CLIENT.send(b"OK")
 
 
 def person_detected():
@@ -116,13 +114,16 @@ def _exit(video_capture):
     print("Exiting...")
     video_capture.release()
 
-    if CONNECTED:
+    try:
         CLIENT.send(b"QUIT")
-        s.close()
+    except BrokenPipeError:
+        pass
+
+    s.close()
 
 
 def main():
-    global CLIENT
+    global CLIENT, stream_image_data
 
     # Initialize OpenCV stuff
     cap = cv2.VideoCapture(0)
@@ -170,21 +171,28 @@ def main():
 
                 if cam_available:
                     if stream_image_data:
-                        print("Sending image to client...")
-
-                        with open("cache.jpg", 'rb') as imagefile:
+                        with open("cache.jpg", "rb") as imagefile:
                             img_bytes = imagefile.read()
                             size = len(img_bytes)
 
+                            print("Sending image size to client...")
                             CLIENT.send(f"SIZE {size}".encode("utf8"))
                             response = CLIENT.recv(2048).decode("utf8")
 
                             if response == "GOT SIZE":
+                                print("Sending image data to client...")
                                 CLIENT.sendall(img_bytes)
                                 response = CLIENT.recv(2048).decode("utf8")
 
                                 if response == "GOT IMAGE":
-                                    print("Sent image to client!")
+                                    print("Sent image to client successfully!")
+
+                                elif response == "STOP FOOTAGE STREAM":
+                                    stream_image_data = False
+
+                            elif response == "STOP FOOTAGE STREAM":
+                                stream_image_data = False
+                                CLIENT.send(b"OK")
 
                         continue
 
@@ -229,15 +237,14 @@ def main():
                     pd_thread.start()
 
     except KeyboardInterrupt:
-        _exit(cap)
-        return
+        pass
 
     except SystemExit:
-        _exit(cap)
-        return
+        pass
 
     finally:
         _exit(cap)
+        return
 
 
 if __name__ == "__main__":
