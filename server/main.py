@@ -140,6 +140,9 @@ def main():
         )
 
     # Initialize face recognition stuff
+    if "known_guardians" not in os.listdir("."):
+        os.mkdir("known_guardians")
+
     for face_name in os.listdir("known_guardians"):
         if face_name != ".DS_Store":
             for filename in os.listdir(f"known_guardians/{face_name}"):
