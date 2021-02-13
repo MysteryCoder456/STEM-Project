@@ -118,8 +118,10 @@ def call_police():
 def _exit(video_capture):
     print("Exiting...")
     video_capture.release()
-    if CONNECTED:
+    try:
         CLIENT.send(b"QUIT")
+    except BrokenPipeError:
+        pass
     s.close()
 
 

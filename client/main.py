@@ -31,10 +31,21 @@ class MainScreen(Screen):
     listen = False
 
     def on_pre_enter(self, *args):
-        if connected:
+        try:
+            s.send(b"PING")
             print("Restarting main message thread...")
+            self.listen = True
             self.listen_thread = threading.Thread(target=self.listen_for_messages, daemon=True)
             self.listen_thread.start()
+        except BrokenPipeError:
+            s.close()
+            print("Connection closed by server!")
+            self.status_label.text = "Connection closed by helper device"
+            self.status_label.color = "#FF0000"
+            self.status_label.bold = False
+            self.listen = False
+        except OSError:
+            pass
 
     def listen_for_messages(self):
         global connected
@@ -174,10 +185,6 @@ class FootageScreen(Screen):
         while self.listen:
             size_msg = s.recv(2048)
 
-            if not size_msg:
-                self.go_back()
-                break
-
             try:
                 size_decoded = size_msg.decode("utf8")
             except UnicodeDecodeError:
@@ -203,6 +210,10 @@ class FootageScreen(Screen):
                 self.image_complete = True
                 print("Received image data!")
                 s.send(b"GOT IMAGE")
+
+            elif "QUIT" in size_decoded:
+                connected = False
+                break
 
     def go_back(self):
         print("Going back to MainScreen")
@@ -231,8 +242,10 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("Keyboard Interrupt...")
     finally:
-        if connected:
+        try:
             s.send(b"QUIT")
+        except BrokenPipeError:
+            pass
         s.close()
         if os.path.exists("footage.jpg"):
             os.remove("footage.jpg")
