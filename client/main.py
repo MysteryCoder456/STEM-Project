@@ -9,16 +9,11 @@ from kivy.app import App
 from kivy.clock import Clock
 from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy.properties import ObjectProperty
-from kivy.core.audio import SoundLoader
-
-os.environ["KIVY_AUDIO"] = "avplayer"
+from playsound import playsound
 
 connected = False
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 PORT = 8000
-
-startup_sound = SoundLoader.load(os.path.join("sounds", "startup_sound.ogg"))
-warning_sound = SoundLoader.load(os.path.join("sounds", "warning_sound.ogg"))
 
 
 class MainScreen(Screen):
@@ -85,7 +80,7 @@ class MainScreen(Screen):
                 self.status_label.text = "A person was detected in your vehicle"
                 self.status_label.color = "#FF0000"
                 self.status_label.bold = True
-                self.warning_sound.play()
+                threading.Thread(target=playsound, args=(os.path.join("sounds", "warning_sound.mp3"),), daemon=True).start()
 
             print("Server has sent a message:", msg_decoded)
 
@@ -233,6 +228,8 @@ class CarSafetyApp(App):
 
 
 if __name__ == "__main__":
+    threading.Thread(target=playsound, args=(os.path.join("sounds", "startup_sound.mp3"),), daemon=True).start()
+
     try:
         CarSafetyApp().run()
     except KeyboardInterrupt:
