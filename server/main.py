@@ -209,7 +209,7 @@ def main():
                                 stream_image_data = False
                                 print("Stopped sending video data!")
 
-                        elif response.decode("utf8") == "STOP FOOTAGE STREAM":
+                        elif response == "STOP FOOTAGE STREAM":
                             stream_image_data = False
                             CLIENT.send(b"OK")
                             print("Stopped sending video data!")

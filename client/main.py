@@ -49,7 +49,7 @@ class MainScreen(Screen):
 
     def listen_for_messages(self):
         global connected
-        print("Listening for messsages...")
+        print("Listening for messages...")
 
         while self.listen:
             try:
@@ -155,7 +155,7 @@ class MainScreen(Screen):
             self.status_label.color = "#00FF00"
             self.status_label.bold = False
 
-            # Start message recieving thread
+            # Start message receiving thread
             print("Connection established!")
             self.listen_thread = threading.Thread(target=self.listen_for_messages, daemon=True)
             self.listen_thread.start()
@@ -234,7 +234,7 @@ class CarSafetyApp(App):
 
 
 if __name__ == "__main__":
-    sp_thread = threading.Thread(target=speak, args=("Please turn up your volume, you will recieve alerts like this...",), daemon=True)
+    sp_thread = threading.Thread(target=speak, args=("Please turn up your volume, you will receive alerts like this...",), daemon=True)
     sp_thread.start()
 
     try:
