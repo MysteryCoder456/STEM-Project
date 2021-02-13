@@ -188,14 +188,20 @@ class FootageScreen(Screen):
                 print(f"Received image size: {size}!")
                 s.send(b"GOT SIZE")
 
-                img_data = s.recv(size)
                 self.image_complete = False
+                img_data = b""
+
+                while len(img_data) < size:
+                    packet = s.recv(4096)
+                    img_data += packet
+
+                img_data = img_data[:size]
 
                 with open("footage.jpg", "wb") as imagefile:
                     imagefile.write(img_data)
 
-                print("Received image data!")
                 self.image_complete = True
+                print("Received image data!")
                 s.send(b"GOT IMAGE")
 
     def go_back(self):

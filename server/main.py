@@ -188,7 +188,7 @@ def main():
                             continue
 
                         if response.decode("utf8") == "GOT SIZE":
-                            time.sleep(0.2)
+                            time.sleep(0.1)
                             print("Sending image data to client...")
                             CLIENT.sendall(img_bytes)
                             response = CLIENT.recv(2048)
