@@ -6,6 +6,7 @@ import socket
 import os
 import threading
 from kivy.app import App
+from kivy.clock import Clock
 from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy.properties import ObjectProperty
 import playsound
@@ -153,12 +154,18 @@ class FootageScreen(Screen):
     image_widget = ObjectProperty(None)
     listen_thread = None
     listen = False
+    image_complete = False
 
     def on_pre_enter(self, *args):
         print("Starting image streaming thread...")
         self.listen = True
         self.listen_thread = threading.Thread(target=self.listen_for_messages, daemon=True)
         self.listen_thread.start()
+        Clock.schedule_interval(self.reload_image, 0.01)
+
+    def reload_image(self, dt):
+        if self.image_complete:
+            self.image_widget.reload()
 
     def listen_for_messages(self):
         global connected
@@ -182,15 +189,14 @@ class FootageScreen(Screen):
                 s.send(b"GOT SIZE")
 
                 img_data = s.recv(size)
+                self.image_complete = False
 
                 with open("footage.jpg", "wb") as imagefile:
                     imagefile.write(img_data)
 
                 print("Received image data!")
+                self.image_complete = True
                 s.send(b"GOT IMAGE")
-
-            # self.image_widget.source = "footage.jpg"
-            # self.image_widget.reload()
 
     def go_back(self):
         print("Going back to MainScreen")

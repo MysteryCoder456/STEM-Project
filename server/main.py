@@ -179,33 +179,35 @@ def main():
                             img_bytes = imagefile.read()
                             size = len(img_bytes)
 
-                            print("Sending image size to client...")
-                            CLIENT.send(f"SIZE {size}".encode("utf8"))
+                        print("Sending image size to client...")
+                        CLIENT.send(f"SIZE {size}".encode("utf8"))
+                        response = CLIENT.recv(2048)
+
+                        if not response:
+                            stream_image_data = False
+                            continue
+
+                        if response.decode("utf8") == "GOT SIZE":
+                            time.sleep(0.2)
+                            print("Sending image data to client...")
+                            CLIENT.sendall(img_bytes)
                             response = CLIENT.recv(2048)
 
                             if not response:
+                                stream_image_data = False
                                 continue
 
-                            if response.decode("utf8") == "GOT SIZE":
-                                time.sleep(0.2)
-                                print("Sending image data to client...")
-                                CLIENT.sendall(img_bytes)
-                                response = CLIENT.recv(2048)
-
-                                if not response:
-                                    continue
-
-                                if response.decode("utf8") == "GOT IMAGE":
-                                    print("Sent image to client successfully!")
-
-                                elif response.decode("utf8") == "STOP FOOTAGE STREAM":
-                                    stream_image_data = False
-                                    print("Stopped sending video data!")
+                            if response.decode("utf8") == "GOT IMAGE":
+                                print("Sent image to client successfully!")
 
                             elif response.decode("utf8") == "STOP FOOTAGE STREAM":
                                 stream_image_data = False
-                                CLIENT.send(b"OK")
                                 print("Stopped sending video data!")
+
+                        elif response.decode("utf8") == "STOP FOOTAGE STREAM":
+                            stream_image_data = False
+                            CLIENT.send(b"OK")
+                            print("Stopped sending video data!")
 
                         continue
 
