@@ -2,8 +2,6 @@ kivy
 pygame
 opencv-python
 pyaudio
-gtts
-playsound
 numpy
 face_recognition
 twilio
