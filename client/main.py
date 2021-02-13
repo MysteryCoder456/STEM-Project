@@ -9,26 +9,28 @@ from kivy.app import App
 from kivy.clock import Clock
 from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy.properties import ObjectProperty
-import playsound
-import gtts
+from kivy.core.audio import SoundLoader
+
+os.environ["KIVY_AUDIO"] = "avplayer"
 
 connected = False
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 PORT = 8000
 
-
-def speak(text):
-    tts = gtts.gTTS(text)
-    tts.save("tts.mp3")
-    playsound.playsound("tts.mp3")
+startup_sound = SoundLoader.load(os.path.join("sounds", "startup_sound.ogg"))
+warning_sound = SoundLoader.load(os.path.join("sounds", "warning_sound.ogg"))
 
 
 class MainScreen(Screen):
     status_label = ObjectProperty(None)
     error_label = ObjectProperty(None)
     ip_entry = ObjectProperty(None)
+
     listen_thread = None
     listen = False
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
     def on_pre_enter(self, *args):
         try:
@@ -83,10 +85,7 @@ class MainScreen(Screen):
                 self.status_label.text = "A person was detected in your vehicle"
                 self.status_label.color = "#FF0000"
                 self.status_label.bold = True
-
-                speak_thread = threading.Thread(target=speak, args=("Warning! A person was detected in your vehicle. I repeat, a person was detected in your vehicle.",),
-                                                daemon=True)
-                speak_thread.start()
+                self.warning_sound.play()
 
             print("Server has sent a message:", msg_decoded)
 
@@ -234,9 +233,6 @@ class CarSafetyApp(App):
 
 
 if __name__ == "__main__":
-    sp_thread = threading.Thread(target=speak, args=("Please turn up your volume, you will receive alerts like this...",), daemon=True)
-    sp_thread.start()
-
     try:
         CarSafetyApp().run()
     except KeyboardInterrupt:
@@ -244,8 +240,13 @@ if __name__ == "__main__":
     finally:
         try:
             s.send(b"QUIT")
+
         except BrokenPipeError:
             pass
+
+        except OSError:
+            pass
+
         s.close()
         if os.path.exists("footage.jpg"):
             os.remove("footage.jpg")
