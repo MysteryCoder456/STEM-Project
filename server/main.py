@@ -76,20 +76,21 @@ def listen_for_messages():
             continue
 
         try:
-            msg = CLIENT.recv(2048).decode("utf-8")
+            msg = CLIENT.recv(2048)
+            msg_decoded = msg.decode("utf-8")
         except ConnectionResetError:
             CONNECTED = False
             print("Connection closed by client!")
             CLIENT = new_client()
             continue
 
-        if msg == "QUIT":
+        if "QUIT" in msg_decoded:
             CONNECTED = False
             print("Connection closed by client!")
             CLIENT = new_client()
             continue
 
-        elif msg == "START FOOTAGE STREAM":
+        elif msg_decoded == "START FOOTAGE STREAM":
             stream_image_data = True
             CLIENT.send(b"OK")
             print("Started sending video data!")
@@ -117,17 +118,13 @@ def call_police():
 def _exit(video_capture):
     print("Exiting...")
     video_capture.release()
-
-    try:
+    if CONNECTED:
         CLIENT.send(b"QUIT")
-    except BrokenPipeError:
-        pass
-
     s.close()
 
 
 def main():
-    global CLIENT, stream_image_data
+    global CLIENT, stream_image_data, CONNECTED
 
     # Initialize OpenCV stuff
     cap = cv2.VideoCapture(0)
@@ -181,26 +178,32 @@ def main():
 
                         print("Sending image size to client...")
                         CLIENT.send(f"SIZE {size}".encode("utf8"))
-                        response = CLIENT.recv(2048)
+                        response = CLIENT.recv(2048).decode("utf8")
 
-                        if not response:
+                        if "QUIT" in response:
                             stream_image_data = False
+                            CONNECTED = False
+                            print("Connection closed by client!")
+                            CLIENT = new_client()
                             continue
 
-                        if response.decode("utf8") == "GOT SIZE":
+                        if response == "GOT SIZE":
                             time.sleep(0.1)
                             print("Sending image data to client...")
                             CLIENT.sendall(img_bytes)
-                            response = CLIENT.recv(2048)
+                            response = CLIENT.recv(2048).decode("utf8")
 
-                            if not response:
+                            if "QUIT" in response:
                                 stream_image_data = False
+                                CONNECTED = False
+                                print("Connection closed by client!")
+                                CLIENT = new_client()
                                 continue
 
-                            if response.decode("utf8") == "GOT IMAGE":
+                            if response == "GOT IMAGE":
                                 print("Sent image to client successfully!")
 
-                            elif response.decode("utf8") == "STOP FOOTAGE STREAM":
+                            elif response == "STOP FOOTAGE STREAM":
                                 stream_image_data = False
                                 print("Stopped sending video data!")
 
@@ -252,14 +255,13 @@ def main():
                     pd_thread.start()
 
     except KeyboardInterrupt:
-        pass
+        return
 
     except SystemExit:
-        pass
+        return
 
     finally:
         _exit(cap)
-        return
 
 
 if __name__ == "__main__":
