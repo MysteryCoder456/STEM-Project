@@ -5,4 +5,3 @@ pyaudio
 numpy
 face_recognition
 twilio
-playsound

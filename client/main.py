@@ -9,11 +9,16 @@ from kivy.app import App
 from kivy.clock import Clock
 from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy.properties import ObjectProperty
-from playsound import playsound
+from kivy.core.audio import SoundLoader, Sound
 
 connected = False
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 PORT = 8000
+
+
+def play_sound(sound):
+    so: Sound = SoundLoader.load(sound)
+    so.play()
 
 
 class MainScreen(Screen):
@@ -80,7 +85,7 @@ class MainScreen(Screen):
                 self.status_label.text = "A person was detected in your vehicle"
                 self.status_label.color = "#FF0000"
                 self.status_label.bold = True
-                threading.Thread(target=playsound, args=(os.path.join("sounds", "warning_sound.mp3"),), daemon=True).start()
+                play_sound(os.path.join("sounds", "warning_sound.mp3"))
 
             print("Server has sent a message:", msg_decoded)
 
@@ -194,6 +199,8 @@ class FootageScreen(Screen):
 
                 while len(img_data) < size:
                     packet = s.recv(4096)
+                    if b"QUIT" in packet:
+                        return
                     img_data += packet
 
                 img_data = img_data[:size]
@@ -207,7 +214,7 @@ class FootageScreen(Screen):
 
             elif "QUIT" in size_decoded:
                 connected = False
-                break
+                return
 
     def go_back(self):
         print("Going back to MainScreen")
@@ -228,7 +235,7 @@ class CarSafetyApp(App):
 
 
 if __name__ == "__main__":
-    threading.Thread(target=playsound, args=(os.path.join("sounds", "startup_sound.mp3"),), daemon=True).start()
+    play_sound(os.path.join("sounds", "startup_sound.mp3"))
 
     try:
         CarSafetyApp().run()
