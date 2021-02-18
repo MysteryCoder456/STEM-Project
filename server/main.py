@@ -207,6 +207,7 @@ def main():
 
                             elif response == "STOP FOOTAGE STREAM":
                                 stream_image_data = False
+                                CLIENT.send(b"OK")
                                 print("Stopped sending video data!")
 
                         elif response == "STOP FOOTAGE STREAM":
